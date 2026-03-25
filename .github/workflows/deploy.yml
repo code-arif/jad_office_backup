@@ -1,0 +1,32 @@
+name: Deploy to Server
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: 72.62.62.162
+          username: jad
+          password: "5MHD25D7a24dMGxdF3k6"
+          port: 21  # Standard FTP
+          # server-dir: "/htdocs/admin.ipboy.com.au/"
+          local-dir: "./"
+          exclude: |
+            **/.git*
+            **/.github/
+            **/node_modules/
+            **/vendor/
+            **/tests/
+            /.env*
+            /package-lock.json
+            /composer.lock
+          timeout: 600000  # 10 minutes

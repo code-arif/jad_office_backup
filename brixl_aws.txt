@@ -1,0 +1,80 @@
+
+Cloud panel
+https://44.203.45.123:8443
+user name : brixl_website
+email: brixl_website@gmail.com
+password: KQXR9Xer26uz9NnJMvEm
+
+
+
+
+
+
+user information:
+login information:
+
+user name : brixl_website
+email: brixl_website@gmail.com
+password: KQXR9Xer26uz9NnJMvEm
+
+
+site:
+domain: brixl-backend.site
+site user :brixl-backend
+password : FjsOlwiPMG1A1mCjg58D
+
+
+SMTP credentials
+
+Iam User name:
+ses-smtp-user.20250729-185948
+
+SMTP user name :
+AKIAYNZQXXW7UCPMO3UT
+
+password : BCwuB3Xh5S0gdS6uIehyONIDTTAF+bFL2ONRWC002QTi
+
+
+
+SMTP user 
+email user:
+username : brixl
+password: FjsOlwiPMG1A1mCjg58D
+
+
+database information :
+
+database name: brixl
+user name : brixl
+passoword: qxR2kRMhf1sOWlJlh8mL
+
+
+
+
+
+
+smtp :
+
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mail.us-east-1.awsapps.com
+MAIL_PORT=465
+MAIL_USERNAME=brixl@brixl-backend.site
+MAIL_PASSWORD=FjsOlwiPMG1A1mCjg58D
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS=brixl@brixl-backend.site
+MAIL_FROM_NAME="Brixl"
+
+
+
+ftp user
+username: brixl_backend
+password: eJDgDUWb5jLCWlMp05hJ
+
+ssh:
+
+ssh brixl@44.203.45.123
+username : brixl
+password : JNggOqsJlPk7kYmzmVXz
+
+

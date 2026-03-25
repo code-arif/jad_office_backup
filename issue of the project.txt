@@ -1,0 +1,23 @@
+    Route::get('/business-profile',[BusinessProfileController::class, 'getProfile']);
+    Route::post('/business-profile/update', [BusinessAuthController::class, 'edit']);
+    Route::post('/business-menu/update', [BusinessAuthController::class, 'editMenu']);
+
+    Those routes old image deleteation problem 
+
+    
+
+    
+Softvence server Oscaru creadencials:
+
+database password:P2A7IkyuM{3r
+
+
+
+FTP creadencials:
+
+FTP Username: app@oscaru.softvencefsd.xyz
+FTP server: ftp.softvencefsd.xyz
+FTP & explicit FTPS port:  21
+ftp password: n4QDW+=XfgqB
+
+asfasd
