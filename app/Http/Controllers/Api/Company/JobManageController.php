@@ -2,23 +2,28 @@
 
 namespace App\Http\Controllers\Api\Company;
 
-use Carbon\Carbon;
 use App\Helper\Helper;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\IndividualJobsListResource;
 use App\Models\Company;
-use App\Models\Payment;
-use App\Models\Employee;
 use App\Models\CompanyJob;
 use App\Models\DeviceToken;
-use App\Traits\ApiResponse;
-use App\Models\JobApplicant;
-use Illuminate\Http\Request;
+use App\Models\Employee;
 use App\Models\FirebaseTokens;
+use App\Models\JobApplicant;
+use App\Models\Payment;
+use App\Services\FirebaseNotificationService;
+use App\Traits\ApiResponse;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use App\Services\FirebaseNotificationService;
-use App\Http\Resources\IndividualJobsListResource;
+use Kreait\Firebase\Exception\Messaging\NotFound;
+use Stripe\Exception\SignatureVerificationException;
+use Stripe\Webhook;
+use Throwable;
+use UnexpectedValueException;
 
 
 class JobManageController extends Controller
@@ -220,17 +225,15 @@ class JobManageController extends Controller
                     'body'  => $job->title . ' at ' . $company->name . ' is now available.',
                     'icon'  => url('path/to/icon.png'),
                 ]);
-            } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
+            } catch (NotFound $e) {
                 // Token is invalid or unregistered
-                \Illuminate\Support\Facades\Log::warning("FCM token not found: {$token}");
+                Log::warning("FCM token not found: {$token}");
                 // Optionally remove it from DB
                 FirebaseTokens::where('token', $token)->delete();
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error("Firebase send failed for token {$token}: {$e->getMessage()}");
+            } catch (Throwable $e) {
+                Log::error("Firebase send failed for token {$token}: {$e->getMessage()}");
             }
         }
-        // ===========================================
-
 
         return $this->success($job, 'Job created successfully.', 201);
     }
@@ -288,7 +291,6 @@ class JobManageController extends Controller
 
 
     // webhook
-
     public function handleStripeWebhook(Request $request)
     {
         $payload    = $request->getContent();
@@ -296,14 +298,14 @@ class JobManageController extends Controller
         $endpointSecret = config('services.stripe.webhook_secret');
 
         try {
-            $event = \Stripe\Webhook::constructEvent(
+            $event = Webhook::constructEvent(
                 $payload,
                 $sigHeader,
                 $endpointSecret
             );
-        } catch (\UnexpectedValueException $e) {
+        } catch (UnexpectedValueException $e) {
             return response()->json(['error' => 'Invalid payload'], 400);
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+        } catch (SignatureVerificationException $e) {
             return response()->json(['error' => 'Invalid signature'], 400);
         }
 
@@ -929,7 +931,7 @@ class JobManageController extends Controller
             ->first();
 
 
-       
+
 
         if (! $job) {
             return $this->error([], 'Job not found', 404);

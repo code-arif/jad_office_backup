@@ -3,21 +3,21 @@
 namespace App\Http\Controllers\Api\Employee;
 
 use App\Helper\Helper;
+use App\Http\Controllers\Controller;
+use App\Mail\JobAppliedMail;
 use App\Models\Company;
-use App\Models\JobSave;
-use App\Models\Employee;
 use App\Models\CompanyJob;
 use App\Models\DeviceToken;
-use App\Traits\ApiResponse;
-use App\Mail\JobAppliedMail;
-use App\Models\JobApplicant;
-use Illuminate\Http\Request;
-use ParagonIE\Sodium\Compat;
+use App\Models\Employee;
 use App\Models\FirebaseTokens;
+use App\Models\JobApplicant;
+use App\Models\JobSave;
+use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
-use App\Services\FirebaseNotificationService;
+use Kreait\Firebase\Exception\Messaging\NotFound;
+use Throwable;
 
 class JobApplicationController extends Controller
 {
@@ -113,12 +113,12 @@ class JobApplicationController extends Controller
                     'body'  => $notificationBody,
                     'icon'  => url('path/to/icon.png'), // optional app icon
                 ]);
-            } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
+            } catch (NotFound $e) {
                 // Token invalid or unregistered → remove it
-                \Illuminate\Support\Facades\Log::warning("FCM token not found: {$token}");
+                Log::warning("FCM token not found: {$token}");
                 FirebaseTokens::where('token', $token)->delete();
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error("Firebase send failed for token {$token}: {$e->getMessage()}");
+            } catch (Throwable $e) {
+                Log::error("Firebase send failed for token {$token}: {$e->getMessage()}");
             }
         }
 
@@ -135,7 +135,7 @@ class JobApplicationController extends Controller
                         $company_job,
                         $company
                     ));
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error(
                     'Job application email failed: ' . $e->getMessage()
                 );
@@ -147,7 +147,6 @@ class JobApplicationController extends Controller
 
 
     // job details
-
     public function jobSeekerjobDetails($id)
     {
         $user = auth()->guard('api')->user();
@@ -198,33 +197,30 @@ class JobApplicationController extends Controller
             ]);
         }
 
-
         // Format response
         $data = $applications->map(function ($app) {
+            $job = $app->job;
 
-            $title = $app->job->title ?? '';
+            $title = $job->title ?? '';
 
             // Create abbreviation from job title
             $abbreviation = collect(explode(' ', $title))
                 ->filter()
                 ->map(fn($word) => strtoupper(substr($word, 0, 1)))
                 ->implode('');
+
             return [
-                'id'          => $app->id,
-                'job_title'   => $title,
-                'abbreviation' => $abbreviation,
-                'company_name' => $app->job->company->name ?? null,
-                'salary'      => $app->job->salary,
-                'image'       => $app->job->description_image
-                    ? url($app->job->description_image)
-                    : null,
-                'video'       => $app->job->description_video
-                    ? url($app->job->description_video)
-                    : null,
-                'deadline'    => $app->job->dedline,
-                'job_type'    => $app->job->employment_type,
-                'job_location' => $app->job->location,
-                'is_applied'  => true
+                'id'            => $job->id,
+                'job_title'     => $title,
+                'abbreviation'  => $abbreviation,
+                'company_name'  => $job->company->name ?? null,
+                'salary'        => $job->salary,
+                'image'         => $job->description_image ? url($job->description_image) : null,
+                'video'         => $job->description_video ? url($job->description_video) : null,
+                'deadline'      => $job->dedline,
+                'job_type'      => $job->job_type,
+                'job_location'  => $job->location,
+                'is_applied'    => true
             ];
         });
 
@@ -355,8 +351,7 @@ class JobApplicationController extends Controller
     }
 
 
-    // Save job 
-
+    // Save job
     public function saveJob(Request $request)
     {
         $user = auth('api')->user();
@@ -462,7 +457,7 @@ class JobApplicationController extends Controller
                     'image'        => $item->job->description_image ? url($item->job->description_image) : null,
                     'video'        => $item->job->description_video ? url($item->job->description_video) : null,
                     'deadline'     => $item->job->dedline ?? null,
-                    'job_type'     => $item->job->employment_type ?? null,
+                    'job_type'     => $item->job->job_type ?? null,
                     'job_location' => $item->job->location ?? null,
                     'is_saved'     => true,
                 ];

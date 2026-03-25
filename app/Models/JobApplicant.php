@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobApplicant extends Model
 {
-    
+
     protected $fillable = [
         'company_id',
         'job_id',
@@ -33,12 +33,11 @@ class JobApplicant extends Model
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
 
-
     public function getResumeUrlAttribute($value)
     {
         return url($value);
     }
 
 
-  
+
 }

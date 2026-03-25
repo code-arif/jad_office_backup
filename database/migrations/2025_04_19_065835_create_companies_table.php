@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
 
             $table->id();
-
-            $table->integer('user_id');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('image_url')->nullable();
             $table->string('name')->nullable();
             $table->string('display_name')->nullable();
@@ -24,9 +23,7 @@ return new class extends Migration
             $table->string('website_url')->nullable();
             $table->string('past_project')->nullable();
             $table->text('bio')->nullable();
-
             $table->timestamps();
-          
         });
     }
 

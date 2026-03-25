@@ -2,28 +2,27 @@
 
 namespace App\Http\Controllers\Api\User\Auth;
 
-use Exception;
-use Carbon\Carbon;
-use App\Models\User;
-use App\Mail\OtpMail;
 use App\Helper\Helper;
-use Twilio\Rest\Client;
-use App\Models\Employee;
-use App\Traits\ApiResponse;
-use Illuminate\Http\Request;
-use App\Mail\RegisterOtpMail;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use App\Mail\OtpMail;
+use App\Mail\RegisterOtpMail;
+use App\Models\Employee;
+use App\Models\User;
+use App\Traits\ApiResponse;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
 
 class AuthenticationController extends Controller
 {
     use ApiResponse;
 
+    // User regisration
     public function register(Request $request)
     {
         try {
@@ -31,9 +30,6 @@ class AuthenticationController extends Controller
                 'name'          => ['required', 'string', 'max:255'],
                 'email'         => ['required', 'string', 'email', 'unique:users', 'max:255'],
                 'password'      => ['required', 'string', 'min:8'],
-                // 'phone_number'  => ['required', 'string', 'max:15', 'unique:users'],
-                // 'date_of_birth' => ['required', 'date', 'before:today'],
-
             ]);
 
             if ($validator->fails()) {
@@ -41,24 +37,17 @@ class AuthenticationController extends Controller
             }
 
             $validatedData = $validator->validated();
-            $user          = User::where('email', $validatedData['email'])->first();
-            $otp           = rand(1000, 9999);
-            $otpExpiresAt  = Carbon::now()->addMinutes(5);
+            $user = User::where('email', $validatedData['email'])->first();
+            $otp = rand(1000, 9999);
+            $otpExpiresAt = Carbon::now()->addMinutes(5);
 
             $user = User::create([
-
                 'name'            => $validatedData['name'],
-
                 'email'           => $validatedData['email'],
                 'password'        => Hash::make($validatedData['password']),
-
-                // 'phone_number'    => $validatedData['phone_number'],
-                // 'date_of_birth'   => $validatedData['date_of_birth'],
-                // 'age'             => Helper::calculateAge($validatedData['date_of_birth']),
                 'otp'             => $otp,
                 'otp_expires_at'  => $otpExpiresAt,
                 'is_otp_verified' => false,
-
             ]);
 
             Mail::to($user->email)->send(new RegisterOtpMail($otp, $user->name));
@@ -74,6 +63,7 @@ class AuthenticationController extends Controller
         }
     }
 
+    // Email Verify
     public function RegistrationVerifyOtp(Request $request)
     {
         $validator = validator()->make($request->all(), [
@@ -126,6 +116,7 @@ class AuthenticationController extends Controller
         return $this->success($userData, 'User Registration successful.', 200);
     }
 
+    
     public function login(Request $request)
     {
         try {
@@ -221,7 +212,7 @@ class AuthenticationController extends Controller
                 // Optional: also store clean name for display/download
                 // $dataToUpdate['resume_original_name'] = $originalName;
             }
-            
+
 
             // Avatar update
             if ($request->hasFile('avatar')) {

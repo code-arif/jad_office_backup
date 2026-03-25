@@ -54,9 +54,9 @@ Broadcast::routes([
 Route::prefix('v1')->group(function () {
     Route::post('social/signin', [SocialLoginController::class, 'socialSigninsocialSignin']);
     Route::group(['middleware' => 'guest:api'], function () {
+
         // Authentication
-       
-        Route::post('/register', [AuthenticationController::class, 'register']);
+        Route::post('/register', [AuthenticationController::class, 'register']); // DONE
         Route::post('/register-otp-verify', [AuthenticationController::class, 'RegistrationVerifyOtp']);
         Route::post('/resend-otp', [AuthenticationController::class, 'ResendOtp']);
 
@@ -80,24 +80,16 @@ Route::prefix('v1')->group(function () {
 });
 
 // search company
-Route::prefix('v1')->group(function (){
-Route::get('/company/search', [EmployeeController::class, 'searchCompany']);
+Route::prefix('v1')->group(function () {
+    Route::get('/company/search', [EmployeeController::class, 'searchCompany']);
 });
+
 //  repoert
 Route::post('/report', [ReportController::class, 'report']);
-
-
-
-
- 	// featured job
-    Route::get('v1/employee/job/featured', [JobBoardController::class, 'featuredJobList']);
-
-
-	
+// featured job
+Route::get('v1/employee/job/featured', [JobBoardController::class, 'featuredJobList']);
 
 Route::middleware(['auth:jobseeker', 'role:jobseeker'])->prefix('v1')->group(function () {
-
-    // update role
 
     // Employee CRUD
     Route::get('/employees', [EmployeeController::class, 'index'])->name('admin.employee.index');
@@ -114,9 +106,8 @@ Route::middleware(['auth:jobseeker', 'role:jobseeker'])->prefix('v1')->group(fun
     Route::post('/update-avatar', [UserProfileController::class, 'updateAvatar']);
     Route::post('/update-password', [UserProfileController::class, 'updatePassword']);
     Route::post('/update-card-info', [UserProfileController::class, 'updateCardInfo']);
-  
- 
-    
+
+
     // job details
     Route::get('/employee/job/details/{id}', [JobBoardController::class, 'jobDetails']);
 
@@ -187,7 +178,7 @@ Route::middleware(['auth:api'])->controller(ChatSystemController::class)->prefix
     Route::post('/send/message', 'send_message');
 });
 
-Route::prefix('v1')->group(function(){
+Route::prefix('v1')->group(function () {
     Route::post('/user/role/swotch', [UserProfileController::class, 'roleSwitching']);
 });
 
