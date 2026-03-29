@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('cell_number')->nullable();
             $table->string('address')->nullable();
             $table->string('resume')->nullable();
-      
             $table->timestamps();
         });
     }

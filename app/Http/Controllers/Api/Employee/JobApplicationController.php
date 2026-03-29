@@ -39,7 +39,7 @@ class JobApplicationController extends Controller
         $request->validate([
             'job_id' => 'required|exists:company_jobs,id',
             'full_name' => 'required|string|max:255',
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'resume' => 'required|file|mimes:pdf,doc,docx|max:10240',
             'cell_number' => 'required',
             'email' => 'required'
         ]);
@@ -176,40 +176,50 @@ class JobApplicationController extends Controller
         ]);
     }
 
-    // user APPLied job List
+    // Get user applied jobs
     public function getAppliedJobs()
     {
         $user = auth('api')->user();
 
-        $employee = $user->employee;
+        // Get employee properly
+        $employee = Employee::where('user_id', $user->id)->first();
 
-
-        $applications = JobApplicant::with(['job.company'])
-            ->where('employee_id', $employee->id)
-            ->get();
-
-
-        if (!$applications) {
+        if (!$employee) {
             return response()->json([
                 'status'  => false,
-                'code'    => 200,
-                'message' => 'Job Applicatient not found'
+                'code'    => 404,
+                'message' => 'Employee not found'
             ]);
         }
 
-        // Format response
+        $applications = JobApplicant::with(['job.company'])
+            ->where('employee_id', $employee->id)
+            ->latest()
+            ->get();
+
+        if ($applications->isEmpty()) {
+            return response()->json([
+                'status'  => false,
+                'code'    => 200,
+                'message' => 'Job Applicant not found'
+            ]);
+        }
+
         $data = $applications->map(function ($app) {
+
             $job = $app->job;
+
+            if (!$job) return null;
 
             $title = $job->title ?? '';
 
-            // Create abbreviation from job title
             $abbreviation = collect(explode(' ', $title))
                 ->filter()
                 ->map(fn($word) => strtoupper(substr($word, 0, 1)))
                 ->implode('');
 
             return [
+                'application_id' => $app->id,
                 'id'            => $job->id,
                 'job_title'     => $title,
                 'abbreviation'  => $abbreviation,
@@ -222,7 +232,7 @@ class JobApplicationController extends Controller
                 'job_location'  => $job->location,
                 'is_applied'    => true
             ];
-        });
+        })->filter()->values();
 
         return response()->json([
             'status'  => true,
@@ -325,7 +335,7 @@ class JobApplicationController extends Controller
 
         // 🔐 Ensure employee owns this application
         $application = JobApplicant::where('id', $request->application_id)
-            ->where('employee_id', $employee->id)
+            ->where('employee_id', $employee->user_id)
             ->first();
 
         if (!$application) {

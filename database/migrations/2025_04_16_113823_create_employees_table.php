@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('location')->nullable();
             $table->string('image_url')->nullable();
             $table->string('bio')->nullable();
-
-
             $table->timestamps();
         });
     }

@@ -21,7 +21,21 @@ class JobBoardController extends Controller
         $user = auth('api')->user();
 
         // Get employee if user is logged in
-        $employee = $user ? Employee::where('user_id', $user->id)->first() : null;
+        $employee = null;
+
+        if ($user) {
+            $employee = Employee::where('user_id', $user->id)->first();
+        }
+
+        dd($employee);
+
+        $appliedJobIds = [];
+
+        if ($employee) {
+            $appliedJobIds = JobApplicant::where('employee_id', $employee->id)
+                ->pluck('job_id')
+                ->toArray();
+        }
 
         $jobs = CompanyJob::with('company')
             ->whereDate('dedline', '>=', now());
@@ -65,15 +79,17 @@ class JobBoardController extends Controller
         }
 
         $formatted = $featuredJobs->map(function ($job) use ($employee) {
+
             $isSaved = false;
             $isApplied = false;
 
             if ($employee) {
+
                 $isSaved = JobSave::where('employee_id', $employee->id)
                     ->where('job_id', $job->id)
                     ->exists();
 
-                $isApplied = JobApplicant::where('employee_id', $employee->id)
+                $isApplied = JobApplicant::where('employee_id', $employee->id) // FIXED
                     ->where('job_id', $job->id)
                     ->exists();
             }

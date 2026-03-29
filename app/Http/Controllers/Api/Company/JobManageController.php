@@ -116,7 +116,6 @@ class JobManageController extends Controller
     {
         $company = $this->getAuthenticatedCompany();
 
-
         if (! $company) {
             return $this->error([], 'Company not found.', 404);
         }
@@ -126,13 +125,25 @@ class JobManageController extends Controller
         if (! $job) {
             return $this->error([], 'Job not found.', 404);
         }
+
         // Convert relative paths to full URLs
         $job->description_image = $job->description_image ? url($job->description_image) : null;
         $job->description_video = $job->description_video ? url($job->description_video) : null;
 
+        // count down (days left)
+        $countDown = null;
+
+        if ($job->dedline) {
+            $countDown = (int) now()->startOfDay()->diffInDays(
+                Carbon::parse($job->dedline)->startOfDay(),
+                false
+            );
+        }
+
         return $this->success([
             'company' => $company,
             'job'     => $job,
+            'count_down' => $countDown,
         ], 'Job retrieved successfully.');
     }
 

@@ -52,7 +52,7 @@ Broadcast::routes([
 ]);
 
 Route::prefix('v1')->group(function () {
-    Route::post('social/signin', [SocialLoginController::class, 'socialSigninsocialSignin']);
+    Route::post('social/signin', [SocialLoginController::class, 'socialSignin']);
     Route::group(['middleware' => 'guest:api'], function () {
 
         // Authentication
