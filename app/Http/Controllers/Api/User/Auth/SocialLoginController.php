@@ -20,7 +20,7 @@ class SocialLoginController extends Controller
     {
         $request->validate([
             'token'    => 'required|string',
-            'provider' => 'required|string|in:google',
+            'provider' => 'required|string|in:google,apple',
         ]);
 
         try {
