@@ -98,6 +98,7 @@ class JobBoardController extends Controller
                 'id'           => $job->id,
                 'job_title'    => $job->title,
                 'company_name' => $job->company->name ?? null,
+                'company_id'   => $job->company->id ?? null,
                 'salary'       => $job->salary,
                 'image'        => $job->description_image ? url($job->description_image) : null,
                 'video'        => $job->description_video ? url($job->description_video) : null,
