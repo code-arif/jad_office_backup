@@ -101,7 +101,7 @@ return [
     |
     */
 
-    'ttl' => env('JWT_TTL', 720),
+    'ttl' => env('JWT_TTL', 43200), // token time to live in minutes (1 month = 43200 minutes)
 
     /*
     |--------------------------------------------------------------------------

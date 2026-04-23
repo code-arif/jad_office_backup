@@ -319,7 +319,9 @@ class JobApplicationController extends Controller
     public function appliedJobDelete(Request $request)
     {
         $user = auth('api')->user();
-        $employee = $user->employee;
+        // $employee = $user->employee;
+
+        $employee = Employee::where('user_id', $user->id)->first();
 
         if (!$employee) {
             return response()->json([
@@ -335,8 +337,9 @@ class JobApplicationController extends Controller
 
         // 🔐 Ensure employee owns this application
         $application = JobApplicant::where('id', $request->application_id)
-            ->where('employee_id', $employee->user_id)
+            ->where('employee_id', $employee->id)
             ->first();
+
 
         if (!$application) {
             return response()->json([
