@@ -23,13 +23,53 @@ class AuthenticationController extends Controller
     use ApiResponse;
 
     // User regisration
+    // public function register(Request $request)
+    // {
+    //     try {
+    //         $validator = Validator::make($request->all(), [
+    //             'name'          => ['required', 'string', 'max:255'],
+    //             'email'         => ['required', 'string', 'email', 'unique:users', 'max:255'],
+    //             'password'      => ['required', 'string', 'min:8'],
+    //         ]);
+
+    //         if ($validator->fails()) {
+    //             return $this->error([], $validator->errors()->first(), 404);
+    //         }
+
+    //         $validatedData = $validator->validated();
+    //         $user = User::where('email', $validatedData['email'])->first();
+    //         $otp = rand(1000, 9999);
+    //         $otpExpiresAt = Carbon::now()->addMinutes(5);
+
+    //         $user = User::create([
+    //             'name'            => $validatedData['name'],
+    //             'email'           => $validatedData['email'],
+    //             'password'        => Hash::make($validatedData['password']),
+    //             'otp'             => $otp,
+    //             'otp_expires_at'  => $otpExpiresAt,
+    //             'is_otp_verified' => false,
+    //         ]);
+
+    //         Mail::to($user->email)->send(new RegisterOtpMail($otp, $user->name));
+
+    //         return $this->success([
+    //             'message' => 'OTP has been sent to your email. Please verify to complete registration.',
+    //             'email'   => $user->email,
+    //             'otp'     => $user->otp,
+    //         ], 'OTP Sent', 201);
+    //     } catch (Exception $e) {
+    //         Log::error($e->getMessage());
+    //         return $this->error([], $e->getMessage(), 500);
+    //     }
+    // }
+
     public function register(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name'          => ['required', 'string', 'max:255'],
-                'email'         => ['required', 'string', 'email', 'unique:users', 'max:255'],
-                'password'      => ['required', 'string', 'min:8'],
+                'name'     => ['required', 'string', 'max:255'],
+                'email'    => ['required', 'string', 'email', 'max:255'],
+                'password' => ['required', 'string', 'min:8'],
             ]);
 
             if ($validator->fails()) {
@@ -37,16 +77,48 @@ class AuthenticationController extends Controller
             }
 
             $validatedData = $validator->validated();
+
             $user = User::where('email', $validatedData['email'])->first();
+
+            // CASE 1: User already exists
+            if ($user) {
+
+                // if already verified
+                if ($user->is_otp_verified) {
+                    return $this->error([], 'This email is already registered.', 409);
+                }
+
+                // ⏱ Optional: prevent spam resend (uncomment if needed)
+                // if ($user->otp_expires_at && now()->lt($user->otp_expires_at)) {
+                //     return $this->error([], 'Please wait before requesting a new OTP.', 429);
+                // }
+
+                // Resend OTP
+                $otp = rand(1000, 9999);
+
+                $user->update([
+                    'otp' => $otp,
+                    'otp_expires_at' => Carbon::now()->addMinutes(5),
+                ]);
+
+                Mail::to($user->email)->send(new RegisterOtpMail($otp, $user->name));
+
+                return $this->success([
+                    'message' => 'OTP has been resent to your email. Please verify to complete registration.',
+                    'email'   => $user->email,
+                    'otp'     => $user->otp, // keep because your system already using it
+                ], 'OTP Resent', 200);
+            }
+
+            // CASE 2: New User Registration
             $otp = rand(1000, 9999);
-            $otpExpiresAt = Carbon::now()->addMinutes(5);
 
             $user = User::create([
                 'name'            => $validatedData['name'],
                 'email'           => $validatedData['email'],
                 'password'        => Hash::make($validatedData['password']),
                 'otp'             => $otp,
-                'otp_expires_at'  => $otpExpiresAt,
+                'otp_expires_at'  => Carbon::now()->addMinutes(5),
                 'is_otp_verified' => false,
             ]);
 
@@ -116,7 +188,7 @@ class AuthenticationController extends Controller
         return $this->success($userData, 'User Registration successful.', 200);
     }
 
-    
+    // User login
     public function login(Request $request)
     {
         try {
@@ -172,6 +244,7 @@ class AuthenticationController extends Controller
         }
     }
 
+    // Update user role and profile
     public function updateRole(Request $request)
     {
         try {
@@ -285,6 +358,7 @@ class AuthenticationController extends Controller
         }
     }
 
+    // Phone OTP verification
     public function phoneVerifyOtp(Request $request)
     {
         $request->validate([
@@ -312,7 +386,7 @@ class AuthenticationController extends Controller
         return $this->success([], 'Phone number verified successfully.', 200);
     }
 
-
+    // User logout
     public function logout()
     {
         try {
@@ -324,6 +398,7 @@ class AuthenticationController extends Controller
         }
     }
 
+    // Delete user profile
     public function deleteProfile(Request $request)
     {
         $user = auth('api')->user();
@@ -352,10 +427,9 @@ class AuthenticationController extends Controller
         return $this->success([], 'User profile deleted successfully.', 200);
     }
 
-
+    // Resend OTP for email verification
     public function ResendOtp(Request $request)
     {
-
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);

@@ -54,7 +54,6 @@ Broadcast::routes([
 Route::prefix('v1')->group(function () {
     Route::post('social/signin', [SocialLoginController::class, 'socialSignin']);
     Route::group(['middleware' => 'guest:api'], function () {
-
         // Authentication
         Route::post('/register', [AuthenticationController::class, 'register']); // DONE
         Route::post('/register-otp-verify', [AuthenticationController::class, 'RegistrationVerifyOtp']);
